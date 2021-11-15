@@ -34,6 +34,7 @@ class LCD
 	void drawBox(byte x1, byte y1, byte x2, byte y2, byte set);
 	void drawCircle(byte x, byte y, byte rad, byte set);
 	void eraseBlock(byte x1, byte y1, byte x2, byte y2);
+  void LCD_Dibujos();
 
 
 	private:
