@@ -18,7 +18,7 @@ uint16_t time1, time2;
 
 void setup()
 {
-  Serial.begin(115200); //9600bps //115200
+  Serial.begin(9600); //9600bps //115200
   while (!Serial) {}; //Serial port initialization
 
   wifi_create();
