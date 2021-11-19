@@ -1,11 +1,8 @@
 #include <SPI.h>
 #include <WiFiNINA.h>
-
+#include "wifi_config.h"
 
 WiFiClient client;
-int status = WL_IDLE_STATUS;
-char ssid[] = "wind_tutut";      // your network SSID (name)
-char pass[] = "edferoca";        // your network password
 
 void setup() {
   //Initialize serial and wait for port to open:
@@ -63,8 +60,7 @@ void loop() {
 
     // do nothing forevermore:
 
-    while (true);
-
+    delay(5*1000);
   }
 }
 
