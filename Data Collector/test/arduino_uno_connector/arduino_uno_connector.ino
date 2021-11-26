@@ -1,8 +1,10 @@
 #include <SPI.h>
 #include <WiFiNINA.h>
+#include <MQTT.h>
 #include "wifi_config.h"
 
-WiFiClient client;
+WiFiClient net;
+MQTTClient client;
 
 void setup() {
   //Initialize serial and wait for port to open:
@@ -18,50 +20,16 @@ void setup() {
     while (true);
   }
 
-  String fv = WiFi.firmwareVersion();
-  if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
-    Serial.println("Please upgrade the firmware");
-  }
-
-  // print your MAC address:
-  byte mac[6];
-  WiFi.macAddress(mac);
-  Serial.print("MAC: ");
-  printMacAddress(mac);
-
   Serial.println("Scanning available networks...");
   listNetworks();
   connectNetwork();
-}
 
-void loop() {
+  // Note: Local domain names (e.g. "Computer.local" on OSX) are not supported
+  // by Arduino. You need to set the IP address directly.
+  client.begin("public.cloud.shiftr.io", net);
+  client.onMessage(messageReceived);
 
-  // if there are incoming bytes available
-
-  // from the server, read them and print them:
-
-  while (client.available()) {
-
-    char c = client.read();
-
-    Serial.write(c);
-
-  }
-
-  // if the server's disconnected, stop the client:
-
-  if (!client.connected()) {
-
-    Serial.println();
-
-    Serial.println("disconnecting from server.");
-
-    client.stop();
-
-    // do nothing forevermore:
-
-    delay(5*1000);
-  }
+  connect();
 }
 
 void listNetworks() {
@@ -84,86 +52,61 @@ void listNetworks() {
     Serial.print(WiFi.SSID(thisNet));
     Serial.print("\tSignal: ");
     Serial.print(WiFi.RSSI(thisNet));
-    Serial.print(" dBm");
-    Serial.print("\tEncryption: ");
-    printEncryptionType(WiFi.encryptionType(thisNet));
+    Serial.print(" dBm \n");
   }
 }
 
-void printEncryptionType(int thisType) {
-  // read the encryption type and print out the title:
-  switch (thisType) {
-    case ENC_TYPE_WEP:
-      Serial.println("WEP");
-      break;
-    case ENC_TYPE_TKIP:
-      Serial.println("WPA");
-      break;
-    case ENC_TYPE_CCMP:
-      Serial.println("WPA2");
-      break;
-    case ENC_TYPE_NONE:
-      Serial.println("None");
-      break;
-    case ENC_TYPE_AUTO:
-      Serial.println("Auto");
-      break;
-    case ENC_TYPE_UNKNOWN:
-    default:
-      Serial.println("Unknown");
-      break;
-  }
-}
-
-void printMacAddress(byte mac[]) {
-  for (int i = 5; i >= 0; i--) {
-    if (mac[i] < 16) {
-      Serial.print("0");
-    }
-    Serial.print(mac[i], HEX);
-    if (i > 0) {
-      Serial.print(":");
-    }
-  }
-  Serial.println();
-}
-
-void connectNetwork(){
+void  connectNetwork(){
   while (status != WL_CONNECTED) {
     Serial.print("Attempting to connect to SSID: ");
     Serial.println(ssid);
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     status = WiFi.begin(ssid, pass);
     // wait 10 seconds for connection:
-    delay(10000);
+    delay(1000);
   }
   Serial.println("Connected to wifi");
-  printWifiStatus();
 }
 
-void printWifiStatus() {
+void loop()
+{
+  // if the server's disconnected, stop the net:
+  if (!net.connected())
+  {
+    Serial.println();
+    Serial.println("disconnecting from server.");
+    net.stop();
+    // do nothing forevermore:
+    delay(5 * 1000);
+  }
 
-  // print the SSID of the network you're attached to:
+  client.loop();
 
-  Serial.print("SSID: ");
+  if (!client.connected())
+  {
+    connect();
+  }
+}
 
-  Serial.println(WiFi.SSID());
+void messageReceived(String &topic, String &payload) {
+  Serial.println("incoming: " + topic + " - " + payload);
+}
 
-  // print your board's IP address:
+void connect() {
+  Serial.print("checking wifi...");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(1000);
+  }
 
-  IPAddress ip = WiFi.localIP();
+  Serial.print("\nconnecting...");
+  while (!client.connect("arduino", "public", "public")) {
+    Serial.print(".");
+    delay(1000);
+  }
 
-  Serial.print("IP Address: ");
+  Serial.println("\nconnected!");
 
-  Serial.println(ip);
-
-  // print the received signal strength:
-
-  long rssi = WiFi.RSSI();
-
-  Serial.print("signal strength (RSSI):");
-
-  Serial.print(rssi);
-
-  Serial.println(" dBm");
+  client.subscribe("/hello");
+  // client.unsubscribe("/hello");
 }
