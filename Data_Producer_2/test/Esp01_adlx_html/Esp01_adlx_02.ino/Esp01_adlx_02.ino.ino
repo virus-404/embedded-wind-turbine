@@ -70,10 +70,9 @@ void loop()
   
   readAccel(); //Leer aceleracion x, y, z
   delay(500);
-    sprintf(text, "%03u", i++);
-  lcd.setCursor(6, 1);               // Go to column 6, row 1
-  lcd.print(text);
+
   delay(500);
+  lcd.clear();
 }
 
 void readAccel() {
@@ -86,9 +85,19 @@ void readAccel() {
   int y = (((int)_buff[3]) << 8) | _buff[2];
   int z = (((int)_buff[5]) << 8) | _buff[4];
   int num = 1234;
-  char cstr[16];
-  itoa(x, cstr, 10);
-  client.publish("broker/DP2/acelerometro/x", cstr);
+  char cstrX[16];
+  itoa(x, cstrX, 10);
+  char cstrY[16];
+  itoa(y, cstrY, 10);
+  char cstrZ[16];
+  itoa(z, cstrZ, 10);
+  client.publish("broker/DP2/acelerometro/x", cstrX);
+  client.publish("broker/DP2/acelerometro/y", cstrY);
+  client.publish("broker/DP2/acelerometro/z", cstrZ);
+  lcd.setCursor(0, 1);               
+  lcd.print("x");
+  lcd.setCursor(3, 1);               
+  lcd.print(x);
   Serial.print("x: ");
   Serial.print( x );
   Serial.print(" y: ");
