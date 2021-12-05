@@ -100,13 +100,13 @@ void connect() {
   }
 
   Serial.print("\nconnecting...");
-  while (!client.connect("arduino", "public", "public")) {
+  while (!client.connect("192.168.4.1", "public", "public")) {
     Serial.print(".");
     delay(1000);
   }
 
   Serial.println("\nconnected!");
 
-  client.subscribe("/hello");
+  client.subscribe("broker/counter");
   // client.unsubscribe("/hello");
 }
