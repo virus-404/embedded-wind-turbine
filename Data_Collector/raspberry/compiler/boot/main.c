@@ -48,6 +48,7 @@ static msg_t Thread_LCD(void *p)
     chMtxLock(&mtx1);
     chprintf((BaseSequentialStream *)&SD1, "Result : %u", result);
     chThdSleepMilliseconds(2000);
+    chprintf((BaseSequentialStream *)&SD1, "                  ");
     chMtxUnlock();
   }
   return 0;
@@ -74,7 +75,7 @@ static msg_t Thread_I2C(void *p)
     chMtxUnlock();
 
     
-    if (request = 10)
+    if (request == 10)
       request = 0;
     else 
       request++;
