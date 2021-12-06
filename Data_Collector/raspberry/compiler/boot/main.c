@@ -19,68 +19,59 @@
 */
 
 #include "ch.h"
+#include "chvt.h"
 #include "hal.h"
-#include "chprintf.h"
 
-static WORKING_AREA(waThread_LCD, 128);
-static msg_t Thread_LCD(void *p) {
+static WORKING_AREA(waThread_LED1, 128);
+static msg_t Thread_LED1(void *p)
+{
   (void)p;
-  chRegSetThreadName("SerialPrint");
-  uint16_t iteration=0;
-  while (TRUE) {
-    sdPut(&SD1, (uint8_t)0x7C);
-    sdPut(&SD1, (uint8_t)0x18);
-    sdPut(&SD1, (uint8_t)0x20);
-    chThdSleepMilliseconds(10);
-    
-    sdPut(&SD1, (uint8_t)0x7C);
-    sdPut(&SD1, (uint8_t)0x19);
-    sdPut(&SD1, (uint8_t)0x20);
-    chThdSleepMilliseconds(10);  
-    
-    chprintf((BaseSequentialStream *)&SD1, "Iter.: %u", iteration);
-    iteration++;
-    chThdSleepMilliseconds(2000);
+  chRegSetThreadName("blinker-1");
+  while (TRUE)
+  {
+    palClearPad(GPIO25_PORT, GPIO25_PAD);
+    chThdSleepMilliseconds(100);
+    palSetPad(GPIO25_PORT, GPIO25_PAD);
+    chThdSleepMilliseconds(900);
+    // chThdYield();
   }
   return 0;
 }
 
+static WORKING_AREA(waThread_LED2, 128);
+static msg_t Thread_LED2(void *p)
+{
+  (void)p;
+  chRegSetThreadName("blinker-2");
+  systime_t start;
+  while (TRUE)
+  {
+    palClearPad(GPIO18_PORT, GPIO18_PAD);
+    start = chTimeNow();
+    while (chTimeNow() - start < 500)
+      ;
+    start = chTimeNow();
+    palSetPad(GPIO18_PORT, GPIO18_PAD);
+    while (chTimeNow() - start < 500)
+      ;
+  }
+  return 0;
+}
 
 /*
  * Application entry point.
  */
-int main(void) {
+int main(void)
+{
   halInit();
   chSysInit();
 
-  char txbuf[]= "Hello Chibi-World";
-  
-  // Initialize Serial Port
-  sdStart(&SD1, NULL); 
+  palSetPadMode(GPIO25_PORT, GPIO25_PAD, PAL_MODE_OUTPUT);
+  palSetPadMode(GPIO18_PORT, GPIO18_PAD, PAL_MODE_OUTPUT);
 
-  // First Message
-  chprintf((BaseSequentialStream *)&SD1, "Main (SD1 started)"); 
-   
-  // Coordinates
-  sdPut(&SD1, (uint8_t)0x7C);
-  sdPut(&SD1, (uint8_t)0x18);
-  sdPut(&SD1, (uint8_t)0x00);
-  chThdSleepMilliseconds(10);
-   
-  sdPut(&SD1, (uint8_t)0x7C);
-  sdPut(&SD1, (uint8_t)0x19);
-  sdPut(&SD1, (uint8_t)0x0A);
-  chThdSleepMilliseconds(10); 
+  chThdCreateStatic(waThread_LED1, sizeof(waThread_LED1), HIGHPRIO, Thread_LED1, NULL);
 
-  // Second message
-  chprintf((BaseSequentialStream *)&SD1, txbuf);
-  
-  // Start thread
-  chThdCreateStatic(waThread_LCD, sizeof(waThread_LCD), HIGHPRIO, Thread_LCD, NULL);
-
-  /*
-   * Events servicing loop.
-   */
+  // Blocks until finish
   chThdWait(chThdSelf());
 
   return 0;
