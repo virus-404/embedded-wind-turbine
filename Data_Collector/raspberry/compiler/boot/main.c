@@ -19,41 +19,67 @@
 */
 
 #include "ch.h"
-#include "chvt.h"
 #include "hal.h"
+#include "chprintf.h"
 
-static WORKING_AREA(waThread_LED1, 128);
-static msg_t Thread_LED1(void *p)
+static uint8_t result = 0;
+static const uint8_t slave_address = 0x04;
+
+MUTEX_DECL(mtx1);
+
+static WORKING_AREA(waThread_LCD, 128);
+static msg_t Thread_LCD(void *p)
 {
   (void)p;
-  chRegSetThreadName("blinker-1");
+  chRegSetThreadName("SerialPrint");
+  
   while (TRUE)
   {
-    palClearPad(GPIO25_PORT, GPIO25_PAD);
-    chThdSleepMilliseconds(100);
-    palSetPad(GPIO25_PORT, GPIO25_PAD);
-    chThdSleepMilliseconds(900);
-    // chThdYield();
+    sdPut(&SD1, (uint8_t)0x7C);
+    sdPut(&SD1, (uint8_t)0x18);
+    sdPut(&SD1, (uint8_t)0x20);
+    chThdSleepMilliseconds(10);
+
+    sdPut(&SD1, (uint8_t)0x7C);
+    sdPut(&SD1, (uint8_t)0x19);
+    sdPut(&SD1, (uint8_t)0x20);
+    chThdSleepMilliseconds(10);
+
+    chMtxLock(&mtx1);
+    chprintf((BaseSequentialStream *)&SD1, "Result : %u", result);
+    chThdSleepMilliseconds(2000);
+    chMtxUnlock();
   }
   return 0;
 }
 
-static WORKING_AREA(waThread_LED2, 128);
-static msg_t Thread_LED2(void *p)
+static WORKING_AREA(waThread_I2C, 128);
+static msg_t Thread_I2C(void *p)
 {
   (void)p;
-  chRegSetThreadName("blinker-2");
-  systime_t start;
+  chRegSetThreadName("SerialPrintI2C");
+  uint8_t request = 0;
+
+  // Some time to allow slaves initialization
+  chThdSleepMilliseconds(2000);
+
   while (TRUE)
   {
-    palClearPad(GPIO18_PORT, GPIO18_PAD);
-    start = chTimeNow();
-    while (chTimeNow() - start < 500)
-      ;
-    start = chTimeNow();
-    palSetPad(GPIO18_PORT, GPIO18_PAD);
-    while (chTimeNow() - start < 500)
-      ;
+    // Request values
+    chMtxLock(&mtx1);
+    i2cMasterTransmitTimeout(
+        &I2C0, slave_address, &request, 1,
+        &result, 1, MS2ST(1000));
+    chThdSleepMilliseconds(10);
+    chMtxUnlock();
+
+    
+    if (request = 10)
+      request = 0;
+    else 
+      request++;
+
+    chThdSleepMilliseconds(2000);
   }
   return 0;
 }
@@ -66,12 +92,27 @@ int main(void)
   halInit();
   chSysInit();
 
-  palSetPadMode(GPIO25_PORT, GPIO25_PAD, PAL_MODE_OUTPUT);
-  palSetPadMode(GPIO18_PORT, GPIO18_PAD, PAL_MODE_OUTPUT);
+  // Initialize Serial Port and Mutex
+  sdStart(&SD1, NULL);
+  chMtxInit(&mtx1);
 
-  chThdCreateStatic(waThread_LED1, sizeof(waThread_LED1), HIGHPRIO, Thread_LED1, NULL);
+  /*
+   * LCD initialization.
+   */
+  chThdCreateStatic(waThread_LCD, sizeof(waThread_LCD), NORMALPRIO, Thread_LCD, NULL);
 
-  // Blocks until finish
+  /*
+   * I2C initialization.
+   */
+  I2CConfig i2cConfig;
+  i2cStart(&I2C0, &i2cConfig);
+
+  chThdCreateStatic(waThread_I2C, sizeof(waThread_I2C), HIGHPRIO, Thread_I2C, NULL);
+
+
+  /*
+   * Events servicing loop.
+   */
   chThdWait(chThdSelf());
 
   return 0;
