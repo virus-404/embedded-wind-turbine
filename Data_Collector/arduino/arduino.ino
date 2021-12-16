@@ -1,112 +1,40 @@
-#include <SPI.h>
-#include <WiFiNINA.h>
-#include <MQTT.h>
-#include "wifi_config.h"
+/*
+ * SLAVE CONFIG
+ */
 
-WiFiClient net;
-MQTTClient client;
+#include "Wire.h"
 
-void setup() {
-  //Initialize serial and wait for port to open:
-  Serial.begin(9600);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
-  }
+#define SLAVE_ADDR 0x04
 
-  // check for the WiFi module:
-  if (WiFi.status() == WL_NO_MODULE) {
-    Serial.println("Communication with WiFi module failed!");
-    // don't continue
-    while (true);
-  }
+uint8_t value;
 
-  Serial.println("Scanning available networks...");
-  listNetworks();
-  connectNetwork();
-
-  // Note: Local domain names (e.g. "Computer.local" on OSX) are not supported
-  // by Arduino. You need to set the IP address directly.
-  client.begin("public.cloud.shiftr.io", net);
-  client.onMessage(messageReceived);
-
-  connect();
+void receiveFunc()
+{
+   while (Wire.available() != 1)
+      ;
+   value = (uint8_t)Wire.read();
+   Serial.print("Value received: ");
+   Serial.print(value);
+   Serial.print("\n");
 }
 
-void listNetworks() {
-  // scan for nearby networks:
-  Serial.println("** Scan Networks **");
-  int numSsid = WiFi.scanNetworks();
-  if (numSsid == -1) {
-    Serial.println("Couldn't get a wifi connection");
-    while (true);
-  }
-
-  // print the list of networks seen:
-  Serial.print("number of available networks:");
-  Serial.println(numSsid);
-
-  // print the network number and name for each network found:
-  for (int thisNet = 0; thisNet < numSsid; thisNet++) {
-    Serial.print(thisNet);
-    Serial.print(") ");
-    Serial.print(WiFi.SSID(thisNet));
-    Serial.print("\tSignal: ");
-    Serial.print(WiFi.RSSI(thisNet));
-    Serial.print(" dBm \n");
-  }
+void sendFunc()
+{
+   Serial.print("Value send: ");
+   Serial.println((uint8_t)(value  * 2));
+   Wire.write((uint8_t)(value  * 2));
 }
 
-void  connectNetwork(){
-  while (status != WL_CONNECTED) {
-    Serial.print("Attempting to connect to SSID: ");
-    Serial.println(ssid);
-    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
-    status = WiFi.begin(ssid, pass);
-    // wait 10 seconds for connection:
-    delay(1000);
-  }
-  Serial.println("Connected to wifi");
+void setup()
+{
+   // put your setup code here, to run once:
+   Serial.begin(9600);
+   Wire.begin(SLAVE_ADDR);
+   Wire.onReceive(receiveFunc);
+   Wire.onRequest(sendFunc);
 }
 
 void loop()
 {
-  // if the server's disconnected, stop the net:
-  if (!net.connected())
-  {
-    Serial.println();
-    Serial.println("disconnecting from server.");
-    net.stop();
-    // do nothing forevermore:
-    delay(5 * 1000);
-  }
-
-  client.loop();
-
-  if (!client.connected())
-  {
-    connect();
-  }
-}
-
-void messageReceived(String &topic, String &payload) {
-  Serial.println("incoming: " + topic + " - " + payload);
-}
-
-void connect() {
-  Serial.print("checking wifi...");
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(1000);
-  }
-
-  Serial.print("\nconnecting...");
-  while (!client.connect("192.168.4.1", "public", "public")) {
-    Serial.print(".");
-    delay(1000);
-  }
-
-  Serial.println("\nconnected!");
-
-  client.subscribe("broker/counter");
-  // client.unsubscribe("/hello");
+   // put your main code here, to run repeatedly:
 }
