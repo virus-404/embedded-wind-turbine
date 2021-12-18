@@ -38,15 +38,16 @@ static msg_t Thread_LCD(void *p)
     sdPut(&SD1, (uint8_t)0x7C);
     sdPut(&SD1, (uint8_t)0x18);
     sdPut(&SD1, (uint8_t)0x20);
-    chThdSleepMilliseconds(10);
+    chThdSleepMilliseconds(100);
 
     sdPut(&SD1, (uint8_t)0x7C);
     sdPut(&SD1, (uint8_t)0x19);
     sdPut(&SD1, (uint8_t)0x20);
-    chThdSleepMilliseconds(10);
+    chThdSleepMilliseconds(100);
 
     chMtxLock(&mtx1);
     chprintf((BaseSequentialStream *)&SD1, "Result : %u", result);
+
     chThdSleepMilliseconds(2000);
     chprintf((BaseSequentialStream *)&SD1, "                  ");
     chMtxUnlock();
@@ -75,7 +76,7 @@ static msg_t Thread_I2C(void *p)
     chMtxUnlock();
 
     
-    if (request == 10)
+    if (request == 5)
       request = 0;
     else 
       request++;
