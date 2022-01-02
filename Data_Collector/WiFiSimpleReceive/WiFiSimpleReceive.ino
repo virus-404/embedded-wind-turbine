@@ -40,7 +40,7 @@ MqttClient mqttClient(wifiClient);
 
 const char broker[] = "192.168.4.1";
 int        port     = 1883;
-const char topic[]  = "broker/counter";
+const char topic[]  = "broker/WT1";
 
 void setup() {
   //Initialize serial and wait for port to open:
