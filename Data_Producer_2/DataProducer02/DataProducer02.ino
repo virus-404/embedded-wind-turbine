@@ -1,3 +1,4 @@
+
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <Wire.h>
@@ -75,6 +76,9 @@ void readAccel() {
   int x = (((int)_buff[1]) << 8) | _buff[0];   
   int y = (((int)_buff[3]) << 8) | _buff[2];
   int z = (((int)_buff[5]) << 8) | _buff[4];
+  x=conversorGrados(x);
+  y=conversorGrados(y);
+  z=conversorGrados(z);
   int num = 1234;
   char cstrX[16];
   itoa(x, cstrX, 10);
@@ -85,13 +89,14 @@ void readAccel() {
   client.publish("broker/WT1/DP2/acelerometro/x", cstrX);
   client.publish("broker/WT1/DP2/acelerometro/y", cstrY);
   client.publish("broker/WT1/DP2/acelerometro/z", cstrZ);
+  
   lcd.setCursor(2, 0);               
   lcd.print("x");
   lcd.setCursor(0, 1);               
   lcd.print(x);
   lcd.setCursor(7, 0);               
   lcd.print("Y");
-  lcd.setCursor(5, 1);               
+  lcd.setCursor(6, 1);               
   lcd.print(y);
   lcd.setCursor(13, 0);               
   lcd.print("Z");
@@ -103,6 +108,7 @@ void readAccel() {
   Serial.print( y );
   Serial.print(" z: ");
   Serial.println( z );
+  delay(3000);
 }
 
 //Funcion auxiliar de escritura
@@ -184,4 +190,17 @@ void reconnect() {
       delay(5000);
     }
   }
+}
+
+int conversorGrados(int valor){
+  int convertir;
+  if(valor <= 135){
+    convertir=-(valor*90)/135;
+  }
+  if(valor >= 65400){
+    valor = valor-65530;
+    convertir=((valor*90)/135);
+  }
+  
+  return convertir;
 }

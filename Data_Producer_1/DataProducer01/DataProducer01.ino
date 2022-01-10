@@ -66,7 +66,7 @@ void loop() {
   LCDShow();
   delay(5000);
   LCD.clearScreen();
-  delay(2000);
+  //delay(2000);
   
 
 }
