@@ -54,7 +54,7 @@ void setup() {
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
   client.connect(clientID,clientUserName,clientPassword);
-  client.subscribe("broker/DP01/Temperatura");
+  client.subscribe("broker/WT1/#");
 }
 
 void loop() {
