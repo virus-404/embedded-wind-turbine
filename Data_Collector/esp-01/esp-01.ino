@@ -43,14 +43,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
   //Serial.print("] ");
   for (int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
+    delay(250);
   }
+  //delay(3000);
   //Serial.println();
 
 }
 
 void setup() {
   pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
-  Serial.begin(115200);
+  Serial.begin(9600);
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
@@ -62,6 +64,6 @@ void setup() {
 void loop() {
 
   client.loop();
-  delay(100);
+  
   //Serial.println("A");
 }

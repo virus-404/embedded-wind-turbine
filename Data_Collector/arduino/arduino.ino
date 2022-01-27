@@ -21,14 +21,18 @@ void receiveFunc()
 void sendFunc()
 {
    
-   Wire.write(value);
+   Wire.write(cola[leng]);
 }
 
+
+void sendvalue(char value){
+  return value;
+}
 void setup()
 {
    // put your setup code here, to run once:
    Serial.begin(115200);
-   softSerial.begin(115200);
+   softSerial.begin(9600);
    Wire.begin(SLAVE_ADDR);
    Wire.onReceive(receiveFunc);
    Wire.onRequest(sendFunc);
@@ -38,37 +42,22 @@ void setup()
 
 void loop()
 {
-  
-  //if (softSerial.available())
-   
-     // value=softSerial.read();
      while(!softSerial.available());
-     value= softSerial.read();
-     cola[leng]=softSerial.read();
+     cola[leng]= softSerial.read();
+     Serial.print(cola[leng]);
+     //Wire.write(cola[leng]);
+     //Serial.print("leng");
+     Serial.println();
+     //cola[leng]=softSerial.read();
      leng=leng+1;
-     //value ++;
-      //if( value==' '){
-        //Serial.print("aaaa");
-      //}
-      //  value = char(softSerial.read());
-      //Serial.print(value);
+     
       for(int i=0;i<=leng;i++){
-        Serial.print(cola[i]);
+        //Serial.print(cola[i]);
       }
       if(leng==15){
         leng=0;
       }
-      
-      
-   
    delay(500);
-   Serial.println();
-   /*if (softSerial.available()){
-      //value = char(softSerial.read());
-      value = softSerial.read();
-      Serial.print(softSerial.read());
-      //Serial.println(char(softSerial.read()));
-      //delay(2500);
-   }
-   */
+   //Serial.println();
+   
 }
