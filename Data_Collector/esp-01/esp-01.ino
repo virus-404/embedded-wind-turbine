@@ -7,6 +7,7 @@
 
 WiFiClient espClient;
 PubSubClient client(espClient);
+WiFiServer server(80);
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE  (50)
 char msg[MSG_BUFFER_SIZE];
@@ -28,7 +29,7 @@ void setup_wifi() {
     Serial.print(".");
   }
 
-  randomSeed(micros());
+  delay(100);
 
   Serial.println("");
   Serial.println("WiFi connected");
@@ -37,13 +38,13 @@ void setup_wifi() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
+  //Serial.print("Message arrived [");
+  //Serial.print(topic);
+  //Serial.print("] ");
   for (int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
   }
-  Serial.println();
+  //Serial.println();
 
 }
 
@@ -54,6 +55,7 @@ void setup() {
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
   client.connect(clientID,clientUserName,clientPassword);
+  //client.subscribe("broker/counter#");
   client.subscribe("broker/WT1/#");
 }
 

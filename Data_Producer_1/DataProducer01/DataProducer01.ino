@@ -59,12 +59,12 @@ void loop() {
 	client.publish("broker/WT1/DP1/Humedad", humidityTemp);
   client.publish("broker/WT1/DP1/temperatura", celsiusTemp);
   // mostrar en pantalla LCD
-  delay(2000);
+  //delay(2000);
   LCD.clearScreen();
   //*********precentar en LCD
   LCD_Dibujos();
   LCDShow();
-  delay(5000);
+  delay(3000);
   LCD.clearScreen();
   //delay(2000);
   

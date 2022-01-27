@@ -81,11 +81,14 @@ void readAccel() {
   z=conversorGrados(z);
   int num = 1234;
   char cstrX[16];
-  itoa(x, cstrX, 10);
+  dtostrf((float)x,5,0, cstrX);
+  //itoa(x, cstrX, 10);
   char cstrY[16];
-  itoa(y, cstrY, 10);
+  dtostrf((float)y,5,0, cstrY);
+  //itoa(y, cstrY, 10);
   char cstrZ[16];
-  itoa(z, cstrZ, 10);
+  dtostrf((float)z,5,0, cstrZ);
+  //itoa(z, cstrZ, 10);
   client.publish("broker/WT1/DP2/acelerometro/x", cstrX);
   client.publish("broker/WT1/DP2/acelerometro/y", cstrY);
   client.publish("broker/WT1/DP2/acelerometro/z", cstrZ);

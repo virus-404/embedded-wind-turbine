@@ -7,7 +7,7 @@ SoftwareSerial softSerial(2, 3); // RX, TX
 
 void setup()
 {
-   Serial.begin(baudRate);
+   Serial.begin(115200);
    softSerial.begin(115200);
 }
 

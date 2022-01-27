@@ -8,26 +8,20 @@
 #define SLAVE_ADDR 0x04
 SoftwareSerial softSerial(2, 3); // RX, TX
 
-uint8_t value;
+char value= 'a';
+int leng=0;
+char cola[15];
 uint8_t sp01;
 
 void receiveFunc()
 {
-   while (Wire.available() != 1)
-      ;
-     
-   /*value = (uint8_t) Wire.read();
-   Serial.print("Value received: ");
-   Serial.print(value);
-   Serial.print("\n");
-   */
+   while (Wire.available() != 1);
 }
 
 void sendFunc()
 {
-   //Serial.print("Value send: ");
-   //Serial.println((uint8_t)(value  * 2));
-   Wire.write((uint8_t)(value));
+   
+   Wire.write(value);
 }
 
 void setup()
@@ -35,16 +29,46 @@ void setup()
    // put your setup code here, to run once:
    Serial.begin(115200);
    softSerial.begin(115200);
-   
    Wire.begin(SLAVE_ADDR);
    Wire.onReceive(receiveFunc);
    Wire.onRequest(sendFunc);
+   
+  
 }
 
 void loop()
 {
-   if (softSerial.available())
-         value = (uint8_t) softSerial.read();
-         delay(250);
+  
+  //if (softSerial.available())
    
+     // value=softSerial.read();
+     while(!softSerial.available());
+     value= softSerial.read();
+     cola[leng]=softSerial.read();
+     leng=leng+1;
+     //value ++;
+      //if( value==' '){
+        //Serial.print("aaaa");
+      //}
+      //  value = char(softSerial.read());
+      //Serial.print(value);
+      for(int i=0;i<=leng;i++){
+        Serial.print(cola[i]);
+      }
+      if(leng==15){
+        leng=0;
+      }
+      
+      
+   
+   delay(500);
+   Serial.println();
+   /*if (softSerial.available()){
+      //value = char(softSerial.read());
+      value = softSerial.read();
+      Serial.print(softSerial.read());
+      //Serial.println(char(softSerial.read()));
+      //delay(2500);
+   }
+   */
 }
