@@ -1,3 +1,5 @@
 mosquitto_sub -h 192.168.4.1 -t broker/DP1/temperatura -q 1 -u ed
 
 mosquitto_sub -h 192.168.4.1 -t broker/DP2/acelerometro/x -q 1 -u ed
+
+mosquitto_sub -h 192.168.4.1 -t broker/WT1/# -q 1 -u ed

@@ -22,7 +22,7 @@
 #include "hal.h"
 #include "chprintf.h"
 
-static uint8_t result = 0;
+static  uint8_t result=0 ;
 static const uint8_t slave_address = 0x04;
 
 MUTEX_DECL(mtx1);
@@ -32,9 +32,11 @@ static msg_t Thread_LCD(void *p)
 {
   (void)p;
   chRegSetThreadName("SerialPrint");
-  
+
   while (TRUE)
   {
+
+		chThdSleepMilliseconds(2000);
     sdPut(&SD1, (uint8_t)0x7C);
     sdPut(&SD1, (uint8_t)0x18);
     sdPut(&SD1, (uint8_t)0x20);
@@ -46,10 +48,10 @@ static msg_t Thread_LCD(void *p)
     chThdSleepMilliseconds(100);
 
     chMtxLock(&mtx1);
-    chprintf((BaseSequentialStream *)&SD1, "Result : %u", result);
+    //chprintf((BaseSequentialStream *)&SD1, "%c", result);
 
     chThdSleepMilliseconds(2000);
-    chprintf((BaseSequentialStream *)&SD1, "                  ");
+    //chprintf((BaseSequentialStream *)&SD1, "                  ");
     chMtxUnlock();
   }
   return 0;
@@ -69,19 +71,20 @@ static msg_t Thread_I2C(void *p)
   {
     // Request values
     chMtxLock(&mtx1);
-    i2cMasterTransmitTimeout(
-        &I2C0, slave_address, &request, 1,
-        &result, 1, MS2ST(1000));
+    i2cMasterTransmitTimeout(&I2C0, slave_address, &request, 1,
+                             &result, 1, MS2ST(1000));
+		chprintf((BaseSequentialStream *)&SD1, "%c", result);
     chThdSleepMilliseconds(10);
     chMtxUnlock();
 
-    
+
     if (request == 5)
       request = 0;
-    else 
+    else
       request++;
 
     chThdSleepMilliseconds(2000);
+
   }
   return 0;
 }
@@ -107,6 +110,7 @@ int main(void)
    * I2C initialization.
    */
   I2CConfig i2cConfig;
+	//i2cConfig.ic_speed=100000;
   i2cStart(&I2C0, &i2cConfig);
 
   chThdCreateStatic(waThread_I2C, sizeof(waThread_I2C), HIGHPRIO, Thread_I2C, NULL);

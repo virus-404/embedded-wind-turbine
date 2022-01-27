@@ -32,36 +32,36 @@ static msg_t Thread_I2C(void *p) {
   uint8_t request[]={0,0};
   uint8_t result=0;
   msg_t status;
-  
+
   // Some time to allow slaves initialization
   chThdSleepMilliseconds(2000);
-  
+
   while (TRUE) {
 
     // Request values
-    i2cMasterTransmit( &I2C0, slave_address, request, 2, 
+    i2cMasterTransmit( &I2C0, slave_address, request, 2,
                        &result, 1);
-                       
+
     chThdSleepMilliseconds(10);
-     
+
     sdPut(&SD1, (int8_t)0x7C);
     sdPut(&SD1, (int8_t)0x18);
     sdPut(&SD1, (int8_t)0x00);
     chThdSleepMilliseconds(10);
-    
+
     sdPut(&SD1, (int8_t)0x7C);
     sdPut(&SD1, (int8_t)0x19);
     sdPut(&SD1, (int8_t)0x20);
     chThdSleepMilliseconds(10);
-      
-    chprintf((BaseSequentialStream *)&SD1, "Aval. %ux%u: %u  ", 
+
+    chprintf((BaseSequentialStream *)&SD1, "Aval. %ux%u: %c  ",
                                      request[0],request[1], result);
     request[1]++;
     if (request[1]>10) {
       request[1] = 0;
       request[0]++;
     }
-      
+
     chThdSleepMilliseconds(2000);
   }
   return 0;
@@ -72,15 +72,16 @@ int main(void) {
   chSysInit();
 
   // Initialize Serial Port
-  sdStart(&SD1, NULL); 
-  
+  sdStart(&SD1, NULL);
+
   /*
    * I2C initialization.
    */
   I2CConfig i2cConfig;
+	i2Config.ic_speed=10000;
   i2cStart(&I2C0, &i2cConfig);
-   
-  chThdCreateStatic(waThread_I2C, sizeof(waThread_I2C), 
+
+  chThdCreateStatic(waThread_I2C, sizeof(waThread_I2C),
                                           HIGHPRIO, Thread_I2C, NULL);
 
   // Blocks until finish
