@@ -13,22 +13,44 @@ unsigned long lastMsg = 0;
 char msg[MSG_BUFFER_SIZE];
 int value = 0;
 
-void setup_wifi() {
 
-  delay(10);
-  // We start by connecting to a WiFi network
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
 
+void setup() {
+  pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
+  Serial.begin(115200);
+  WifiInitSTA();
+  client.setServer(mqtt_server, 1883);
+  client.setCallback(callback);
+  //client.connect(clientID,clientUserName,clientPassword);
+  //client.subscribe("broker/counter#");
+  client.subscribe("broker/WT1/#");
+}
+
+void loop() {
+   //intento de conectarce a red Wifi
+  if (!client.connected()) {
+  reconnect();
+  }
+
+  client.loop();
+  
+  //Serial.println("A");
+}
+
+
+//**********************************************
+//**********Funciones Adicionales***************
+//**********************************************
+
+void WifiInitSTA() {
+  // Nos conectamos al wifi configurado
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, pass);
-
+  
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-
   delay(100);
 
   Serial.println("");
@@ -38,32 +60,35 @@ void setup_wifi() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  //Serial.print("Message arrived [");
-  //Serial.print(topic);
-  //Serial.print("] ");
   for (int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
     //delay(250);
   }
-  //delay(3000);
-  //Serial.println();
-
 }
 
-void setup() {
-  pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
-  Serial.begin(115200);
-  setup_wifi();
-  client.setServer(mqtt_server, 1883);
-  client.setCallback(callback);
-  client.connect(clientID,clientUserName,clientPassword);
-  //client.subscribe("broker/counter#");
-  client.subscribe("broker/WT1/#");
-}
-
-void loop() {
-
-  client.loop();
-  
-  //Serial.println("A");
+void reconnect() {
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    //Serial.print("Attempting MQTT connection...");
+    // Create a random client ID
+    String clientId = "DataProducer_1";
+    clientId += String(random(0xffff), HEX);
+    // Attempt to connect
+    if (client.connect(clientId.c_str())) {
+      Serial.print("connected");
+      delay(3000);
+      // Once connected, publish an announcement...
+      client.publish("outTopic", "hello world");
+      // ... and resubscribe
+      client.subscribe("broker/WT1/#");
+    } else {
+      /*
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      */
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
 }

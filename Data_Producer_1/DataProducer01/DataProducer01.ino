@@ -56,6 +56,7 @@ void loop() {
   //**********DHT11
   DHT11Medidas();
   //**********publicacion en MQTT
+  client.publish("broker/WT1/DP1/","t");
 	client.publish("broker/WT1/DP1/Humedad", humidityTemp);
   client.publish("broker/WT1/DP1/temperatura", celsiusTemp);
   // mostrar en pantalla LCD

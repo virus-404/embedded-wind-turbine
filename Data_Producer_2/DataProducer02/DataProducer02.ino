@@ -89,9 +89,10 @@ void readAccel() {
   char cstrZ[16];
   dtostrf((float)z,5,0, cstrZ);
   //itoa(z, cstrZ, 10);
-  client.publish("broker/WT1/DP2/acelerometro/x", cstrX);
-  client.publish("broker/WT1/DP2/acelerometro/y", cstrY);
-  client.publish("broker/WT1/DP2/acelerometro/z", cstrZ);
+  client.publish("broker/WT1/DP2/acelerometro/x","p");
+  client.publish("broker/WT1/DP2/acelerometro/x",cstrX);
+  client.publish("broker/WT1/DP2/acelerometro/y",cstrY);
+  client.publish("broker/WT1/DP2/acelerometro/z",cstrZ);
   
   lcd.setCursor(2, 0);               
   lcd.print("x");
