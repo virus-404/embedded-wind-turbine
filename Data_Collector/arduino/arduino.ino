@@ -10,7 +10,7 @@ SoftwareSerial softSerial(2, 3); // RX, TX
 
 
 int leng=0;
-char cola[29];
+uint8_t cola[29];
 char pos[14];
 uint8_t sp01;
 
@@ -21,17 +21,10 @@ void receiveFunc()
 
 void sendFunc()
 {
-  for(int i = 0;i<=29;i++){
-    Wire.write(cola[i]);
-    Serial.print(cola[i]);
-  }
-  Serial.println();
-  //Wire.write(cola[leng]);
-  //Serial.println(cola[leng]);
-
+   while(Wire.available()!=2);
+   uint8_t i = (uint8_t)Wire.read();
+   Wire.write((int)cola[i]);
 }
-
-
 
 void setup()
 {
@@ -47,10 +40,11 @@ void setup()
 void loop()
 {
   if(Serial.available()){
-    cola[leng]=Serial.read();
+    cola[leng]=(int) Serial.read();
     //Serial.print(cola[leng]);
     leng=leng+1;
-    if(leng==30 || cola[leng-1]=='p' ){
+    if(leng==30 || cola[leng-1]== 80){ //p in ascii
       leng=0;
     }
   }
+ }

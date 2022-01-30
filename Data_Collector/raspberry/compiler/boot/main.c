@@ -22,12 +22,14 @@
 #include "hal.h"
 #include "chprintf.h"
 
-static  uint8_t result=0 ;
 static const uint8_t slave_address = 0x04;
+uint8_t historico [3][29];
 
 MUTEX_DECL(mtx1);
-
 static WORKING_AREA(waThread_LCD, 128);
+static WORKING_AREA(waThread_I2C, 128);
+
+
 static msg_t Thread_LCD(void *p)
 {
   (void)p;
@@ -35,55 +37,61 @@ static msg_t Thread_LCD(void *p)
 
   while (TRUE)
   {
+		int counter = 0;
+		for (int i = 0; i < 29; i++){
+				if (historico[counter][i] == 'u') return -1;
+				chMtxLock(&mtx1);
 
-		chThdSleepMilliseconds(2000);
-    sdPut(&SD1, (uint8_t)0x7C);
-    sdPut(&SD1, (uint8_t)0x18);
-    sdPut(&SD1, (uint8_t)0x20);
-    chThdSleepMilliseconds(100);
+				sdPut(&SD1, (uint8_t)0x7C);
+				sdPut(&SD1, (uint8_t)0x18);
+				sdPut(&SD1, (uint8_t)0x20);
+				chThdSleepMilliseconds(100);
 
-    sdPut(&SD1, (uint8_t)0x7C);
-    sdPut(&SD1, (uint8_t)0x19);
-    sdPut(&SD1, (uint8_t)0x20);
-    chThdSleepMilliseconds(100);
+				sdPut(&SD1, (uint8_t)0x7C);
+				sdPut(&SD1, (uint8_t)0x19);
+				sdPut(&SD1, (uint8_t)0x20);
+				chThdSleepMilliseconds(100);
+				chprintf((BaseSequentialStream *)&SD1, "%c", historico[counter][i]);
 
-    chMtxLock(&mtx1);
-    //chprintf((BaseSequentialStream *)&SD1, "%c", result);
-
-    chThdSleepMilliseconds(2000);
-    //chprintf((BaseSequentialStream *)&SD1, "                  ");
-    chMtxUnlock();
-  }
+				//chprintf((BaseSequentialStream *)&SD1, "%c", result);
+				//chprintf((BaseSequentialStream *)&SD1, "                  ");
+				chMtxUnlock();
+		}
+		counter++;
+		if (counter > 2) counter = 0;
+	}
   return 0;
 }
 
-static WORKING_AREA(waThread_I2C, 128);
+
 static msg_t Thread_I2C(void *p)
 {
   (void)p;
   chRegSetThreadName("SerialPrintI2C");
   uint8_t request = 0;
+	uint8_t result;
 
   // Some time to allow slaves initialization
-  chThdSleepMilliseconds(2000);
+  chThdSleepMilliseconds(5000);
 
   while (TRUE)
   {
+		//chprintf((BaseSequentialStream *)&SD1, "%c", 	historico[2][0]);
+		//	chprintf((BaseSequentialStream *)&SD1, "%c", result);
     // Request values
-    chMtxLock(&mtx1);
-    i2cMasterTransmitTimeout(&I2C0, slave_address, &request, 1,
-                             &result, 1, MS2ST(1000));
-		chprintf((BaseSequentialStream *)&SD1, "%c", result);
-    chThdSleepMilliseconds(1000); // <-- aquí espera
+		int counter = 0;
+
+		chMtxLock(&mtx1);
+		for (request = 0; request<29 ; request++){
+			i2cMasterTransmitTimeout(&I2C0, slave_address, &request, 1, &result, 1, MS2ST(1000));
+			historico[counter][request] = result;
+			chprintf((BaseSequentialStream *)&SD1, "%c", historico[counter][request]);
+			chThdSleepMilliseconds(200);
+		}
+		counter++;
+		if (counter > 2)
+			counter = 0;
     chMtxUnlock();
-
-
-    if (request == 5)
-      request = 0;
-    else
-      request++;
-
-    chThdSleepMilliseconds(2000);
 
   }
   return 0;
@@ -100,8 +108,11 @@ int main(void)
   // Initialize Serial Port and Mutex
   sdStart(&SD1, NULL);
   chMtxInit(&mtx1);
+	historico[0][0] = 'u';
+	historico[1][0] = 'u';
+	historico[2][0] = 'u';
 
-  /*
+	/*
    * LCD initialization.
    */
   chThdCreateStatic(waThread_LCD, sizeof(waThread_LCD), NORMALPRIO, Thread_LCD, NULL);
