@@ -74,7 +74,7 @@ static msg_t Thread_I2C(void *p)
     i2cMasterTransmitTimeout(&I2C0, slave_address, &request, 1,
                              &result, 1, MS2ST(1000));
 		chprintf((BaseSequentialStream *)&SD1, "%c", result);
-    chThdSleepMilliseconds(10);
+    chThdSleepMilliseconds(1000); // <-- aquí espera
     chMtxUnlock();
 
 
