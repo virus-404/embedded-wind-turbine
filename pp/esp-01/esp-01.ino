@@ -53,9 +53,9 @@ void WifiInitSTA() {
   }
   delay(100);
 
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
+  //Serial.println("");
+  //Serial.println("WiFi connected");
+  //Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 }
 
@@ -75,7 +75,7 @@ void reconnect() {
     clientId += String(random(0xffff), HEX);
     // Attempt to connect
     if (client.connect(clientId.c_str())) {
-      Serial.print("connected");
+      //Serial.print("connected");
       delay(3000);
       // Once connected, publish an announcement...
       client.publish("outTopic", "hello world");

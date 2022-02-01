@@ -61,6 +61,6 @@ void loop()
     if(leng==30 || cola[leng-1]=='p' ){
       leng=0;
     }
-    cola[0]='w';
+    //cola[0]='w';
   }
 }

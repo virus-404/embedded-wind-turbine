@@ -20,7 +20,12 @@
 
 static  uint8_t result=0 ;
 static const uint8_t slave_address = 0x04;
+char tyh[31]="TyH";
+char pos[31]="pos";
+int count_tyh=0;
+
 int j=0;
+int i=50;
 
 MUTEX_DECL(mtx1);
 
@@ -32,30 +37,79 @@ static msg_t Thread_LCD(void *p)
 
   while (TRUE)
   {
-
+		// decorado
 		chThdSleepMilliseconds(2000);
-    sdPut(&SD1, (uint8_t)0x7C);
-    sdPut(&SD1, (uint8_t)0x18);
-    sdPut(&SD1, j);
-    chThdSleepMilliseconds(100);
+		sdPut(&SD1, (uint8_t)0x7C);
+		sdPut(&SD1, (uint8_t)0x18);
+		sdPut(&SD1, 0);
+		chThdSleepMilliseconds(100);
 
-    sdPut(&SD1, (uint8_t)0x7C);
-    sdPut(&SD1, (uint8_t)0x19);
-    sdPut(&SD1, (uint8_t)0x10);
-    chThdSleepMilliseconds(100);
+		sdPut(&SD1, (uint8_t)0x7C);
+		sdPut(&SD1, (uint8_t)0x19);
+		sdPut(&SD1, 60);
+		chThdSleepMilliseconds(100);
 		chMtxLock(&mtx1);
-		chprintf((BaseSequentialStream *)&SD1, "%c", result);
+		chprintf((BaseSequentialStream *)&SD1, "     X      Y      Z");
 		chMtxUnlock();
-		/*
+		chThdSleepMilliseconds(2000);
+		sdPut(&SD1, (uint8_t)0x7C);
+		sdPut(&SD1, (uint8_t)0x18);
+		sdPut(&SD1, 0);
+		chThdSleepMilliseconds(100);
 
-		*/
-
-		j=j+7;
-		if (j>=100){
-			j=0;
+		sdPut(&SD1, (uint8_t)0x7C);
+		sdPut(&SD1, (uint8_t)0x19);
+		sdPut(&SD1, 30);
+		chThdSleepMilliseconds(100);
+		chMtxLock(&mtx1);
+		chprintf((BaseSequentialStream *)&SD1, "     T     H");
+		chMtxUnlock();
+		//escribe pocision
+		int count3=0;
+		for(int ia=0; ia<=100; ia++){
+			chThdSleepMilliseconds(2000);
 			sdPut(&SD1, (uint8_t)0x7C);
-			sdPut(&SD1, (uint8_t)0x00);
+			sdPut(&SD1, (uint8_t)0x18);
+			sdPut(&SD1, ia);
+			chThdSleepMilliseconds(100);
+
+			sdPut(&SD1, (uint8_t)0x7C);
+			sdPut(&SD1, (uint8_t)0x19);
+			sdPut(&SD1, 50);
+			chThdSleepMilliseconds(100);
+			chMtxLock(&mtx1);
+			chprintf((BaseSequentialStream *)&SD1, "%c", tyh[count3]);
+			chMtxUnlock();
+			count3=count3+1;
+			ia=ia+6;
+			if (count3==15){
+				count3=0;
+			}
 		}
+		//escribe temperatura y humedad
+		int count2=19;
+		for(int ia=0; ia<=100; ia++){
+			chThdSleepMilliseconds(2000);
+			sdPut(&SD1, (uint8_t)0x7C);
+			sdPut(&SD1, (uint8_t)0x18);
+			sdPut(&SD1, ia);
+			chThdSleepMilliseconds(100);
+
+			sdPut(&SD1, (uint8_t)0x7C);
+			sdPut(&SD1, (uint8_t)0x19);
+			sdPut(&SD1, 20);
+			chThdSleepMilliseconds(100);
+			chMtxLock(&mtx1);
+			chprintf((BaseSequentialStream *)&SD1, "%c", tyh[count2]);
+			chMtxUnlock();
+			count2=count2+1;
+			ia=ia+6;
+			if (count2==32){
+				count2=19;
+			}
+		}
+		sdPut(&SD1, (uint8_t)0x7C);
+		sdPut(&SD1, (uint8_t)0x00);
     //chprintf((BaseSequentialStream *)&SD1, "%c", result);
 
     chThdSleepMilliseconds(500);
@@ -84,7 +138,21 @@ static msg_t Thread_I2C(void *p)
 
 
     chMtxUnlock();
-		chThdSleepMilliseconds(500); // <-- aquí espera
+		//llena el espacio de memoria para la temepratura y para la humedad
+
+		if((char)result=='p'){
+			count_tyh=0;
+		}
+		if((char)result=='t'){
+			count_tyh=19;
+		}
+		tyh[count_tyh]=result;
+		count_tyh=count_tyh+1;
+
+		if(count_tyh>=32){
+			count_tyh=0;
+		}
+		chThdSleepMilliseconds(1500); // <-- aquí espera
 
 
     if (request == 5)
